@@ -7,7 +7,7 @@
 <style>
 body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; margin:0; padding:0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
 .container { text-align:center; max-width:500px; width:90%; }
-h1,h2 { margin-bottom:20px; }
+h1,h2,h3 { margin-bottom:20px; }
 button { padding:10px 20px; margin:10px; font-size:16px; border-radius:8px; border:none; cursor:pointer; background-color:#4CAF50; color:#fff; transition:transform 0.2s; }
 button:hover{ transform:scale(1.05); }
 .game-board { display:grid; grid-template-columns:repeat(4,80px); grid-gap:10px; justify-content:center; margin:20px 0; }
@@ -16,6 +16,8 @@ button:hover{ transform:scale(1.05); }
 .screen { display:none; }
 .screen.active { display:block; }
 #badges { margin-top:20px; font-size:16px; }
+#emotionSection input { padding:8px; font-size:14px; width:60%; margin-top:10px; }
+#emotionSection button { margin-top:5px; }
 </style>
 </head>
 <body>
@@ -31,6 +33,14 @@ button:hover{ transform:scale(1.05); }
       <h3>🏆 Your Progress</h3>
       <p id="badgeText">No badges yet</p>
     </div>
+
+    <!-- Emotion + Quote Feature -->
+    <div id="emotionSection">
+      <h3>How are you feeling today?</h3>
+      <input type="text" id="userEmotion" placeholder="I feel..." />
+      <button onclick="showEmotionResponse()">Share</button>
+      <p id="emotionResponse" style="margin-top:10px; font-style:italic;"></p>
+    </div>
   </div>
 
   <!-- Memory Game Screen -->
@@ -38,6 +48,15 @@ button:hover{ transform:scale(1.05); }
     <h2>🧠 Memory Game</h2>
     <div id="gameBoard" class="game-board"></div>
     <p>Score: <span id="memoryScore">0</span></p>
+    <select id="memoryLevel" onchange="startMemoryGame()">
+      <option value="0">Level 1: Letters</option>
+      <option value="1">Level 2: Numbers</option>
+      <option value="2">Level 3: Colors</option>
+      <option value="3">Level 4: Animals</option>
+      <option value="4">Level 5: Fruits</option>
+      <option value="5">Level 6: Capitals</option>
+    </select>
+    <br>
     <button onclick="backHome()">🏠 Back Home</button>
   </div>
 
@@ -74,12 +93,22 @@ function backHome() { memoryScreen.classList.remove('active'); quizScreen.classL
 const gameBoard = document.getElementById('gameBoard');
 const memoryScoreEl = document.getElementById('memoryScore');
 let memoryScore=0, firstCard=null, secondCard=null;
-const cardValues=['A','A','B','B','C','C','D','D'];
+
+const memoryLevels = [
+  ['A','A','B','B','C','C','D','D'],                     // Letters
+  ['1','1','2','2','3','3','4','4'],                     // Numbers
+  ['Red','Red','Blue','Blue','Green','Green','Yellow','Yellow'], // Colors
+  ['Cat','Cat','Dog','Dog','Cow','Cow','Pig','Pig'],     // Animals
+  ['Apple','Apple','Banana','Banana','Mango','Mango','Orange','Orange'], // Fruits
+  ['Managua','Managua','León','León','Granada','Granada','Masaya','Masaya'] // Capitals
+];
 
 function startMemoryGame() {
+  const level = document.getElementById('memoryLevel').value;
   memoryScore=0; memoryScoreEl.textContent=memoryScore; firstCard=null; secondCard=null;
   gameBoard.innerHTML='';
-  let shuffled = cardValues.sort(()=>0.5-Math.random());
+  let cards = [...memoryLevels[level]];
+  let shuffled = cards.sort(()=>0.5-Math.random());
   shuffled.forEach(value=>{
     const card=document.createElement('div');
     card.classList.add('card'); card.dataset.value=value; card.textContent='?';
@@ -104,7 +133,10 @@ function checkMatch() {
 }
 
 function checkMemoryBadge() {
-  if(memoryScore===4) { alert("🎉 Memory Master Badge!"); if(!badges.includes("Memory Master")) { badges.push("Memory Master"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); } }
+  if(memoryScore===8) { 
+    alert("🎉 Memory Master Badge!"); 
+    if(!badges.includes("Memory Master")) { badges.push("Memory Master"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); } 
+  }
 }
 
 // ----- Quiz -----
@@ -141,6 +173,44 @@ function selectAnswer(answer){
 function completeQuiz() {
   alert("✅ Quiz Completed! Score: "+quizScore);
   if(quizScore===quizQuestions.length && !badges.includes("Quiz Genius")) { badges.push("Quiz Genius"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); }
+}
+
+// ---- Emotion + Quote Feature ----
+const emotionResponseEl = document.getElementById('emotionResponse');
+
+const emotionQuotes = {
+  sad: [
+    "It's okay to feel sad. Sadness is your soul asking for care.",
+    "Feeling down sometimes helps you appreciate the bright moments ahead."
+  ],
+  happy: [
+    "Happiness is contagious! Share your joy today.",
+    "Celebrate your small wins; they are the stepping stones to bigger joys."
+  ],
+  stressed: [
+    "Take a deep breath. Stress is just your mind signaling it needs a pause.",
+    "One small step at a time can dissolve the heaviest stress."
+  ],
+  anxious: [
+    "Your anxious instinct is a signal, not a sentence. Notice it, then release it.",
+    "Anxiety often points to what you care about most. Breathe, then act gently."
+  ],
+  tired: [
+    "Rest is your mind’s way of healing. You deserve it.",
+    "Even the sun rests each night — your body needs it too."
+  ]
+};
+
+function showEmotionResponse() {
+  const emotion = document.getElementById('userEmotion').value.toLowerCase();
+  if(emotionQuotes[emotion]) {
+    const quotes = emotionQuotes[emotion];
+    const randomQuote = quotes[Math.floor(Math.random()*quotes.length)];
+    emotionResponseEl.textContent = randomQuote;
+  } else {
+    emotionResponseEl.textContent = "Thank you for sharing. Remember, every feeling is valid.";
+  }
+  document.getElementById('userEmotion').value = '';
 }
 </script>
 </body>
