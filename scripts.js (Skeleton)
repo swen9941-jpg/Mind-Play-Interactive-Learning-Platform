@@ -1,0 +1,113 @@
+// Screens
+const homeScreen = document.getElementById('homeScreen');
+const memoryScreen = document.getElementById('memoryScreen');
+const quizScreen = document.getElementById('quizScreen');
+
+// Navigation
+function showMemoryGame() {
+  homeScreen.classList.remove('active');
+  memoryScreen.classList.add('active');
+  startMemoryGame();
+}
+function showQuiz() {
+  homeScreen.classList.remove('active');
+  quizScreen.classList.add('active');
+  startQuiz();
+}
+function backHome() {
+  memoryScreen.classList.remove('active');
+  quizScreen.classList.remove('active');
+  homeScreen.classList.add('active');
+}
+
+// ---------------------
+// Memory Game Logic
+// ---------------------
+const gameBoard = document.getElementById('gameBoard');
+const memoryScoreEl = document.getElementById('memoryScore');
+let memoryScore = 0;
+let firstCard = null;
+let secondCard = null;
+
+const cardValues = ['A','A','B','B','C','C','D','D']; // Example
+function startMemoryGame() {
+  memoryScore = 0;
+  memoryScoreEl.textContent = memoryScore;
+  firstCard = null; secondCard = null;
+  gameBoard.innerHTML = '';
+  let shuffled = cardValues.sort(() => 0.5 - Math.random());
+  shuffled.forEach(value => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.dataset.value = value;
+    card.textContent = '?';
+    card.addEventListener('click', flipCard);
+    gameBoard.appendChild(card);
+  });
+}
+
+function flipCard() {
+  if(this.textContent !== '?') return;
+  this.textContent = this.dataset.value;
+  if(!firstCard) {
+    firstCard = this;
+  } else if(!secondCard) {
+    secondCard = this;
+    checkMatch();
+  }
+}
+
+function checkMatch() {
+  if(firstCard.dataset.value === secondCard.dataset.value) {
+    memoryScore += 1;
+    memoryScoreEl.textContent = memoryScore;
+    firstCard = null; secondCard = null;
+  } else {
+    setTimeout(() => {
+      firstCard.textContent = '?';
+      secondCard.textContent = '?';
+      firstCard = null; secondCard = null;
+    }, 1000);
+  }
+}
+
+// ---------------------
+// Quiz Logic
+// ---------------------
+const questionText = document.getElementById('questionText');
+const answerButtons = document.getElementById('answerButtons');
+const quizScoreEl = document.getElementById('quizScore');
+let quizScore = 0;
+
+const quizQuestions = [
+  {question: "What is 2+2?", answers: ["3","4","5","6"], correct: "4"},
+  {question: "Capital of Nicaragua?", answers: ["Managua","León","Granada","Masaya"], correct: "Managua"}
+];
+
+let currentQuestion = 0;
+function startQuiz() {
+  quizScore = 0;
+  quizScoreEl.textContent = quizScore;
+  currentQuestion = 0;
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = quizQuestions[currentQuestion];
+  questionText.textContent = q.question;
+  answerButtons.innerHTML = '';
+  q.answers.forEach(ans => {
+    const btn = document.createElement('button');
+    btn.textContent = ans;
+    btn.addEventListener('click', () => selectAnswer(ans));
+    answerButtons.appendChild(btn);
+  });
+}
+
+function selectAnswer(answer) {
+  if(answer === quizQuestions[currentQuestion].correct) quizScore += 1;
+  quizScoreEl.textContent = quizScore;
+  currentQuestion +=1;
+  if(currentQuestion < quizQuestions.length) showQuestion();
+  else alert("Quiz Completed! Your Score: "+quizScore);
+}
