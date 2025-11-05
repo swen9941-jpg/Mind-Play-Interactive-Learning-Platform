@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mind Play</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Home / Dashboard -->
+    <div id="homeScreen" class="screen active">
+      <h1>🎮 Mind Play</h1>
+      <p>Learn, Play, and Remember!</p>
+      <button onclick="showMemoryGame()">Memory Game</button>
+      <button onclick="showQuiz()">Quiz</button>
+    </div>
+
+    <!-- Memory Game Screen -->
+    <div id="memoryScreen" class="screen">
+      <h2>Memory Game</h2>
+      <div id="gameBoard" class="game-board"></div>
+      <p>Score: <span id="memoryScore">0</span></p>
+      <button onclick="backHome()">Back Home</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quizScreen" class="screen">
+      <h2>Quiz</h2>
+      <div id="questionContainer">
+        <p id="questionText"></p>
+        <div id="answerButtons" class="answer-buttons"></div>
+      </div>
+      <p>Score: <span id="quizScore">0</span></p>
+      <button onclick="backHome()">Back Home</button>
+    </div>
+
+  </div>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
