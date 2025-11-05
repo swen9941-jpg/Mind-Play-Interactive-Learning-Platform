@@ -1,44 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mind Play</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind Play</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; margin:0; padding:0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+.container { text-align:center; max-width:500px; width:90%; }
+h1,h2 { margin-bottom:20px; }
+button { padding:10px 20px; margin:10px; font-size:16px; border-radius:8px; border:none; cursor:pointer; background-color:#4CAF50; color:#fff; transition:transform 0.2s; }
+button:hover{ transform:scale(1.05); }
+.game-board { display:grid; grid-template-columns:repeat(4,80px); grid-gap:10px; justify-content:center; margin:20px 0; }
+.card { width:80px; height:80px; background-color:#2196F3; color:#fff; display:flex; justify-content:center; align-items:center; font-size:24px; border-radius:8px; cursor:pointer; }
+.answer-buttons button { display:block; width:100%; margin:5px 0; }
+.screen { display:none; }
+.screen.active { display:block; }
+#badges { margin-top:20px; font-size:16px; }
+</style>
 </head>
 <body>
+<div class="container">
 
-  <div class="container">
-
-    <!-- Home / Dashboard -->
-    <div id="homeScreen" class="screen active">
-      <h1>🎮 Mind Play</h1>
-      <p>Learn, Play, and Remember!</p>
-      <button onclick="showMemoryGame()">Memory Game</button>
-      <button onclick="showQuiz()">Quiz</button>
+  <!-- Home / Dashboard -->
+  <div id="homeScreen" class="screen active">
+    <h1>🎮 Mind Play</h1>
+    <p>Learn, Play, and Remember!</p>
+    <button onclick="showMemoryGame()">🧠 Memory Game</button>
+    <button onclick="showQuiz()">❓ Quiz</button>
+    <div id="badges">
+      <h3>🏆 Your Progress</h3>
+      <p id="badgeText">No badges yet</p>
     </div>
-
-    <!-- Memory Game Screen -->
-    <div id="memoryScreen" class="screen">
-      <h2>Memory Game</h2>
-      <div id="gameBoard" class="game-board"></div>
-      <p>Score: <span id="memoryScore">0</span></p>
-      <button onclick="backHome()">Back Home</button>
-    </div>
-
-    <!-- Quiz Screen -->
-    <div id="quizScreen" class="screen">
-      <h2>Quiz</h2>
-      <div id="questionContainer">
-        <p id="questionText"></p>
-        <div id="answerButtons" class="answer-buttons"></div>
-      </div>
-      <p>Score: <span id="quizScore">0</span></p>
-      <button onclick="backHome()">Back Home</button>
-    </div>
-
   </div>
 
-  <script src="scripts.js"></script>
+  <!-- Memory Game Screen -->
+  <div id="memoryScreen" class="screen">
+    <h2>🧠 Memory Game</h2>
+    <div id="gameBoard" class="game-board"></div>
+    <p>Score: <span id="memoryScore">0</span></p>
+    <button onclick="backHome()">🏠 Back Home</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quizScreen" class="screen">
+    <h2>❓ Quiz</h2>
+    <div id="questionContainer">
+      <p id="questionText"></p>
+      <div id="answerButtons" class="answer-buttons"></div>
+    </div>
+    <p>Score: <span id="quizScore">0</span></p>
+    <button onclick="backHome()">🏠 Back Home</button>
+  </div>
+
+</div>
+
+<script>
+// ----- Badge System -----
+const badgeText = document.getElementById('badgeText');
+const badges = JSON.parse(localStorage.getItem('badges')) || [];
+function updateBadges() { badgeText.textContent = badges.length===0?"No badges yet":badges.join(", "); }
+updateBadges();
+
+// ----- Screen Navigation -----
+const homeScreen = document.getElementById('homeScreen');
+const memoryScreen = document.getElementById('memoryScreen');
+const quizScreen = document.getElementById('quizScreen');
+
+function showMemoryGame() { homeScreen.classList.remove('active'); memoryScreen.classList.add('active'); startMemoryGame(); }
+function showQuiz() { homeScreen.classList.remove('active'); quizScreen.classList.add('active'); startQuiz(); }
+function backHome() { memoryScreen.classList.remove('active'); quizScreen.classList.remove('active'); homeScreen.classList.add('active'); updateBadges(); }
+
+// ----- Memory Game -----
+const gameBoard = document.getElementById('gameBoard');
+const memoryScoreEl = document.getElementById('memoryScore');
+let memoryScore=0, firstCard=null, secondCard=null;
+const cardValues=['A','A','B','B','C','C','D','D'];
+
+function startMemoryGame() {
+  memoryScore=0; memoryScoreEl.textContent=memoryScore; firstCard=null; secondCard=null;
+  gameBoard.innerHTML='';
+  let shuffled = cardValues.sort(()=>0.5-Math.random());
+  shuffled.forEach(value=>{
+    const card=document.createElement('div');
+    card.classList.add('card'); card.dataset.value=value; card.textContent='?';
+    card.addEventListener('click',flipCard);
+    gameBoard.appendChild(card);
+  });
+}
+
+function flipCard() {
+  if(this.textContent!=='?') return;
+  this.textContent=this.dataset.value;
+  if(!firstCard) firstCard=this;
+  else if(!secondCard) { secondCard=this; checkMatch(); }
+}
+
+function checkMatch() {
+  if(firstCard.dataset.value===secondCard.dataset.value) {
+    memoryScore+=1; memoryScoreEl.textContent=memoryScore; firstCard=null; secondCard=null; checkMemoryBadge();
+  } else {
+    setTimeout(()=>{ firstCard.textContent='?'; secondCard.textContent='?'; firstCard=null; secondCard=null; },1000);
+  }
+}
+
+function checkMemoryBadge() {
+  if(memoryScore===4) { alert("🎉 Memory Master Badge!"); if(!badges.includes("Memory Master")) { badges.push("Memory Master"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); } }
+}
+
+// ----- Quiz -----
+const questionText=document.getElementById('questionText');
+const answerButtons=document.getElementById('answerButtons');
+const quizScoreEl=document.getElementById('quizScore');
+let quizScore=0, currentQuestion=0;
+const quizQuestions=[
+  {question:"What is 2+2?", answers:["3","4","5","6"], correct:"4"},
+  {question:"Capital of Nicaragua?", answers:["Managua","León","Granada","Masaya"], correct:"Managua"},
+  {question:"What is 5×3?", answers:["15","10","20","8"], correct:"15"},
+  {question:"Color of the sky?", answers:["Blue","Green","Red","Yellow"], correct:"Blue"},
+  {question:"Which is a fruit?", answers:["Carrot","Banana","Potato","Onion"], correct:"Banana"}
+];
+
+function startQuiz() { quizScore=0; quizScoreEl.textContent=quizScore; currentQuestion=0; showQuestion(); }
+
+function showQuestion() {
+  const q=quizQuestions[currentQuestion];
+  questionText.textContent=q.question; answerButtons.innerHTML='';
+  q.answers.forEach(ans=>{
+    const btn=document.createElement('button'); btn.textContent=ans;
+    btn.addEventListener('click',()=>selectAnswer(ans)); answerButtons.appendChild(btn);
+  });
+}
+
+function selectAnswer(answer){
+  if(answer===quizQuestions[currentQuestion].correct) quizScore+=1;
+  quizScoreEl.textContent=quizScore; currentQuestion+=1;
+  if(currentQuestion<quizQuestions.length) showQuestion();
+  else completeQuiz();
+}
+
+function completeQuiz() {
+  alert("✅ Quiz Completed! Score: "+quizScore);
+  if(quizScore===quizQuestions.length && !badges.includes("Quiz Genius")) { badges.push("Quiz Genius"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); }
+}
+</script>
 </body>
 </html>
