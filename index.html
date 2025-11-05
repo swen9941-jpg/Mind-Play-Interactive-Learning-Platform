@@ -1,217 +1,840 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mind Play</title>
-<style>
-body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; margin:0; padding:0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-.container { text-align:center; max-width:500px; width:90%; }
-h1,h2,h3 { margin-bottom:20px; }
-button { padding:10px 20px; margin:10px; font-size:16px; border-radius:8px; border:none; cursor:pointer; background-color:#4CAF50; color:#fff; transition:transform 0.2s; }
-button:hover{ transform:scale(1.05); }
-.game-board { display:grid; grid-template-columns:repeat(4,80px); grid-gap:10px; justify-content:center; margin:20px 0; }
-.card { width:80px; height:80px; background-color:#2196F3; color:#fff; display:flex; justify-content:center; align-items:center; font-size:24px; border-radius:8px; cursor:pointer; }
-.answer-buttons button { display:block; width:100%; margin:5px 0; }
-.screen { display:none; }
-.screen.active { display:block; }
-#badges { margin-top:20px; font-size:16px; }
-#emotionSection input { padding:8px; font-size:14px; width:60%; margin-top:10px; }
-#emotionSection button { margin-top:5px; }
-</style>
-</head>
-<body>
-<div class="container">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Goal Tracker</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100%;
+      color: #333;
+    }
 
-  <!-- Home / Dashboard -->
-  <div id="homeScreen" class="screen active">
-    <h1>🎮 Mind Play</h1>
-    <p>Learn, Play, and Remember!</p>
-    <button onclick="showMemoryGame()">🧠 Memory Game</button>
-    <button onclick="showQuiz()">❓ Quiz</button>
-    <div id="badges">
-      <h3>🏆 Your Progress</h3>
-      <p id="badgeText">No badges yet</p>
+    html {
+      height: 100%;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      color: white;
+    }
+
+    .app-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .welcome-message {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .add-goal-btn {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    .add-goal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+    }
+
+    .filter-select {
+      padding: 10px 15px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.9);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .goals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .goal-card {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .goal-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    }
+
+    .goal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .goal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+
+    .goal-category {
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .goal-description {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .progress-section {
+      margin-bottom: 20px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .progress-amount {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .progress-percentage {
+      font-weight: 600;
+      color: #27ae60;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #ecf0f1;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    .goal-deadline {
+      color: #e74c3c;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    .goal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666;
+      padding: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ecf0f1;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: white;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      opacity: 0.9;
+    }
+
+    .empty-state p {
+      opacity: 0.7;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 10px;
+      }
+      
+      .app-title {
+        font-size: 2rem;
+      }
+      
+      .goals-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <header class="header">
+    <h1 class="app-title" id="appTitle">Financial Goal Tracker</h1>
+    <p class="welcome-message" id="welcomeMessage">Track your financial goals and achieve success!</p>
+   </header>
+   <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+     <div class="stat-value" id="totalGoals">
+      0
+     </div>
+     <div class="stat-label">
+      Total Goals
+     </div>
     </div>
-
-    <!-- Emotion + Quote Feature -->
-    <div id="emotionSection">
-      <h3>How are you feeling today?</h3>
-      <input type="text" id="userEmotion" placeholder="I feel..." />
-      <button onclick="showEmotionResponse()">Share</button>
-      <p id="emotionResponse" style="margin-top:10px; font-style:italic;"></p>
+    <div class="stat-card">
+     <div class="stat-value" id="completedGoals">
+      0
+     </div>
+     <div class="stat-label">
+      Completed
+     </div>
     </div>
-  </div>
-
-  <!-- Memory Game Screen -->
-  <div id="memoryScreen" class="screen">
-    <h2>🧠 Memory Game</h2>
-    <div id="gameBoard" class="game-board"></div>
-    <p>Score: <span id="memoryScore">0</span></p>
-    <select id="memoryLevel" onchange="startMemoryGame()">
-      <option value="0">Level 1: Letters</option>
-      <option value="1">Level 2: Numbers</option>
-      <option value="2">Level 3: Colors</option>
-      <option value="3">Level 4: Animals</option>
-      <option value="4">Level 5: Fruits</option>
-      <option value="5">Level 6: Capitals</option>
-    </select>
-    <br>
-    <button onclick="backHome()">🏠 Back Home</button>
-  </div>
-
-  <!-- Quiz Screen -->
-  <div id="quizScreen" class="screen">
-    <h2>❓ Quiz</h2>
-    <div id="questionContainer">
-      <p id="questionText"></p>
-      <div id="answerButtons" class="answer-buttons"></div>
+    <div class="stat-card">
+     <div class="stat-value" id="totalTarget">
+      $0
+     </div>
+     <div class="stat-label">
+      Total Target
+     </div>
     </div>
-    <p>Score: <span id="quizScore">0</span></p>
-    <button onclick="backHome()">🏠 Back Home</button>
+    <div class="stat-card">
+     <div class="stat-value" id="totalProgress">
+      $0
+     </div>
+     <div class="stat-label">
+      Total Progress
+     </div>
+    </div>
+   </div>
+   <div class="controls"><button class="add-goal-btn" id="addGoalBtn">Add New Goal</button> <select class="filter-select" id="categoryFilter"> <option value="all">All Categories</option> <option value="savings">Savings</option> <option value="investment">Investment</option> <option value="business">Business</option> <option value="debt">Debt Payoff</option> <option value="emergency">Emergency Fund</option> <option value="other">Other</option> </select>
+   </div>
+   <div class="goals-grid" id="goalsGrid"></div>
+   <div class="empty-state" id="emptyState" style="display: none;">
+    <h3>No Financial Goals Yet</h3>
+    <p>Start your journey to financial success by creating your first goal!</p><button class="add-goal-btn" onclick="openAddGoalModal()">Create Your First Goal</button>
+   </div>
+  </div><!-- Add/Edit Goal Modal -->
+  <div class="modal" id="goalModal">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h2 class="modal-title" id="modalTitle">Add New Goal</h2><button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <form id="goalForm">
+     <div class="form-group"><label class="form-label" for="goalTitle">Goal Title</label> <input type="text" id="goalTitle" class="form-input" placeholder="e.g., Save for vacation" required>
+     </div>
+     <div class="form-group"><label class="form-label" for="goalTarget">Target Amount ($)</label> <input type="number" id="goalTarget" class="form-input" placeholder="5000" min="1" step="0.01" required>
+     </div>
+     <div class="form-group"><label class="form-label" for="goalCurrent">Current Amount ($)</label> <input type="number" id="goalCurrent" class="form-input" placeholder="0" min="0" step="0.01" value="0">
+     </div>
+     <div class="form-group"><label class="form-label" for="goalDeadline">Target Date</label> <input type="date" id="goalDeadline" class="form-input" required>
+     </div>
+     <div class="form-group"><label class="form-label" for="goalCategory">Category</label> <select id="goalCategory" class="form-input" required> <option value="savings">Savings</option> <option value="investment">Investment</option> <option value="business">Business</option> <option value="debt">Debt Payoff</option> <option value="emergency">Emergency Fund</option> <option value="other">Other</option> </select>
+     </div>
+     <div class="form-group"><label class="form-label" for="goalDescription">Description</label> <textarea id="goalDescription" class="form-input form-textarea" placeholder="Describe your goal and why it's important to you..."></textarea>
+     </div>
+     <div class="form-group"><button type="submit" class="btn btn-success" style="width: 100%; padding: 12px;"> <span id="submitBtnText">Create Goal</span> </button>
+     </div>
+    </form>
+   </div>
+  </div><!-- Update Progress Modal -->
+  <div class="modal" id="progressModal">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h2 class="modal-title">Update Progress</h2><button class="close-btn" onclick="closeProgressModal()">×</button>
+    </div>
+    <form id="progressForm">
+     <div class="form-group"><label class="form-label" for="newAmount">New Amount ($)</label> <input type="number" id="newAmount" class="form-input" min="0" step="0.01" required>
+     </div>
+     <div class="form-group"><button type="submit" class="btn btn-success" style="width: 100%; padding: 12px;"> Update Progress </button>
+     </div>
+    </form>
+   </div>
   </div>
+  <script>
+    const defaultConfig = {
+      app_title: "Financial Goal Tracker",
+      welcome_message: "Track your financial goals and achieve success!",
+      add_goal_button_text: "Add New Goal",
+      primary_color: "#667eea",
+      secondary_color: "#764ba2",
+      accent_color: "#27ae60",
+      text_color: "#2c3e50",
+      card_color: "#ffffff",
+      font_family: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+      font_size: 16
+    };
 
-</div>
+    let config = { ...defaultConfig };
+    let goals = [];
+    let currentEditingGoal = null;
+    let currentProgressGoal = null;
 
-<script>
-// ----- Badge System -----
-const badgeText = document.getElementById('badgeText');
-const badges = JSON.parse(localStorage.getItem('badges')) || [];
-function updateBadges() { badgeText.textContent = badges.length===0?"No badges yet":badges.join(", "); }
-updateBadges();
+    const dataHandler = {
+      onDataChanged(data) {
+        goals = data || [];
+        renderGoals();
+        updateStats();
+      }
+    };
 
-// ----- Screen Navigation -----
-const homeScreen = document.getElementById('homeScreen');
-const memoryScreen = document.getElementById('memoryScreen');
-const quizScreen = document.getElementById('quizScreen');
+    async function initializeApp() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error("Failed to initialize data SDK");
+        }
+      }
+    }
 
-function showMemoryGame() { homeScreen.classList.remove('active'); memoryScreen.classList.add('active'); startMemoryGame(); }
-function showQuiz() { homeScreen.classList.remove('active'); quizScreen.classList.add('active'); startQuiz(); }
-function backHome() { memoryScreen.classList.remove('active'); quizScreen.classList.remove('active'); homeScreen.classList.add('active'); updateBadges(); }
+    function renderGoals() {
+      const goalsGrid = document.getElementById('goalsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const categoryFilter = document.getElementById('categoryFilter').value;
 
-// ----- Memory Game -----
-const gameBoard = document.getElementById('gameBoard');
-const memoryScoreEl = document.getElementById('memoryScore');
-let memoryScore=0, firstCard=null, secondCard=null;
+      let filteredGoals = goals;
+      if (categoryFilter !== 'all') {
+        filteredGoals = goals.filter(goal => goal.category === categoryFilter);
+      }
 
-const memoryLevels = [
-  ['A','A','B','B','C','C','D','D'],                     // Letters
-  ['1','1','2','2','3','3','4','4'],                     // Numbers
-  ['Red','Red','Blue','Blue','Green','Green','Yellow','Yellow'], // Colors
-  ['Cat','Cat','Dog','Dog','Cow','Cow','Pig','Pig'],     // Animals
-  ['Apple','Apple','Banana','Banana','Mango','Mango','Orange','Orange'], // Fruits
-  ['Managua','Managua','León','León','Granada','Granada','Masaya','Masaya'] // Capitals
-];
+      if (filteredGoals.length === 0) {
+        goalsGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
 
-function startMemoryGame() {
-  const level = document.getElementById('memoryLevel').value;
-  memoryScore=0; memoryScoreEl.textContent=memoryScore; firstCard=null; secondCard=null;
-  gameBoard.innerHTML='';
-  let cards = [...memoryLevels[level]];
-  let shuffled = cards.sort(()=>0.5-Math.random());
-  shuffled.forEach(value=>{
-    const card=document.createElement('div');
-    card.classList.add('card'); card.dataset.value=value; card.textContent='?';
-    card.addEventListener('click',flipCard);
-    gameBoard.appendChild(card);
-  });
-}
+      goalsGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
 
-function flipCard() {
-  if(this.textContent!=='?') return;
-  this.textContent=this.dataset.value;
-  if(!firstCard) firstCard=this;
-  else if(!secondCard) { secondCard=this; checkMatch(); }
-}
+      goalsGrid.innerHTML = filteredGoals.map(goal => {
+        const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
+        const isCompleted = progress >= 100;
+        const daysLeft = Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+        
+        return `
+          <div class="goal-card">
+            <div class="goal-header">
+              <div>
+                <div class="goal-title">${goal.title}</div>
+                <div class="goal-category">${goal.category}</div>
+              </div>
+            </div>
+            <div class="goal-description">${goal.description || ''}</div>
+            <div class="progress-section">
+              <div class="progress-header">
+                <span class="progress-amount">$${goal.current_amount.toLocaleString()} / $${goal.target_amount.toLocaleString()}</span>
+                <span class="progress-percentage">${progress.toFixed(1)}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress}%"></div>
+              </div>
+            </div>
+            <div class="goal-deadline">
+              ${daysLeft > 0 ? `${daysLeft} days left` : daysLeft === 0 ? 'Due today' : `${Math.abs(daysLeft)} days overdue`}
+            </div>
+            <div class="goal-actions">
+              ${!isCompleted ? `<button class="btn btn-primary" onclick="openProgressModal('${goal.__backendId}')">Update Progress</button>` : ''}
+              <button class="btn btn-success" onclick="editGoal('${goal.__backendId}')">Edit</button>
+              <button class="btn btn-danger" onclick="deleteGoal('${goal.__backendId}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
 
-function checkMatch() {
-  if(firstCard.dataset.value===secondCard.dataset.value) {
-    memoryScore+=1; memoryScoreEl.textContent=memoryScore; firstCard=null; secondCard=null; checkMemoryBadge();
-  } else {
-    setTimeout(()=>{ firstCard.textContent='?'; secondCard.textContent='?'; firstCard=null; secondCard=null; },1000);
-  }
-}
+    function updateStats() {
+      const totalGoals = goals.length;
+      const completedGoals = goals.filter(goal => (goal.current_amount / goal.target_amount) >= 1).length;
+      const totalTarget = goals.reduce((sum, goal) => sum + goal.target_amount, 0);
+      const totalProgress = goals.reduce((sum, goal) => sum + goal.current_amount, 0);
 
-function checkMemoryBadge() {
-  if(memoryScore===8) { 
-    alert("🎉 Memory Master Badge!"); 
-    if(!badges.includes("Memory Master")) { badges.push("Memory Master"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); } 
-  }
-}
+      document.getElementById('totalGoals').textContent = totalGoals;
+      document.getElementById('completedGoals').textContent = completedGoals;
+      document.getElementById('totalTarget').textContent = `$${totalTarget.toLocaleString()}`;
+      document.getElementById('totalProgress').textContent = `$${totalProgress.toLocaleString()}`;
+    }
 
-// ----- Quiz -----
-const questionText=document.getElementById('questionText');
-const answerButtons=document.getElementById('answerButtons');
-const quizScoreEl=document.getElementById('quizScore');
-let quizScore=0, currentQuestion=0;
-const quizQuestions=[
-  {question:"What is 2+2?", answers:["3","4","5","6"], correct:"4"},
-  {question:"Capital of Nicaragua?", answers:["Managua","León","Granada","Masaya"], correct:"Managua"},
-  {question:"What is 5×3?", answers:["15","10","20","8"], correct:"15"},
-  {question:"Color of the sky?", answers:["Blue","Green","Red","Yellow"], correct:"Blue"},
-  {question:"Which is a fruit?", answers:["Carrot","Banana","Potato","Onion"], correct:"Banana"}
-];
+    function openAddGoalModal() {
+      currentEditingGoal = null;
+      document.getElementById('modalTitle').textContent = 'Add New Goal';
+      document.getElementById('submitBtnText').textContent = 'Create Goal';
+      document.getElementById('goalForm').reset();
+      document.getElementById('goalCurrent').value = '0';
+      
+      // Set minimum date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('goalDeadline').min = today;
+      
+      document.getElementById('goalModal').classList.add('active');
+    }
 
-function startQuiz() { quizScore=0; quizScoreEl.textContent=quizScore; currentQuestion=0; showQuestion(); }
+    function editGoal(goalId) {
+      const goal = goals.find(g => g.__backendId === goalId);
+      if (!goal) return;
 
-function showQuestion() {
-  const q=quizQuestions[currentQuestion];
-  questionText.textContent=q.question; answerButtons.innerHTML='';
-  q.answers.forEach(ans=>{
-    const btn=document.createElement('button'); btn.textContent=ans;
-    btn.addEventListener('click',()=>selectAnswer(ans)); answerButtons.appendChild(btn);
-  });
-}
+      currentEditingGoal = goal;
+      document.getElementById('modalTitle').textContent = 'Edit Goal';
+      document.getElementById('submitBtnText').textContent = 'Update Goal';
+      
+      document.getElementById('goalTitle').value = goal.title;
+      document.getElementById('goalTarget').value = goal.target_amount;
+      document.getElementById('goalCurrent').value = goal.current_amount;
+      document.getElementById('goalDeadline').value = goal.deadline;
+      document.getElementById('goalCategory').value = goal.category;
+      document.getElementById('goalDescription').value = goal.description || '';
+      
+      document.getElementById('goalModal').classList.add('active');
+    }
 
-function selectAnswer(answer){
-  if(answer===quizQuestions[currentQuestion].correct) quizScore+=1;
-  quizScoreEl.textContent=quizScore; currentQuestion+=1;
-  if(currentQuestion<quizQuestions.length) showQuestion();
-  else completeQuiz();
-}
+    function openProgressModal(goalId) {
+      const goal = goals.find(g => g.__backendId === goalId);
+      if (!goal) return;
 
-function completeQuiz() {
-  alert("✅ Quiz Completed! Score: "+quizScore);
-  if(quizScore===quizQuestions.length && !badges.includes("Quiz Genius")) { badges.push("Quiz Genius"); localStorage.setItem('badges',JSON.stringify(badges)); updateBadges(); }
-}
+      currentProgressGoal = goal;
+      document.getElementById('newAmount').value = goal.current_amount;
+      document.getElementById('progressModal').classList.add('active');
+    }
 
-// ---- Emotion + Quote Feature ----
-const emotionResponseEl = document.getElementById('emotionResponse');
+    function closeModal() {
+      document.getElementById('goalModal').classList.remove('active');
+      currentEditingGoal = null;
+    }
 
-const emotionQuotes = {
-  sad: [
-    "It's okay to feel sad. Sadness is your soul asking for care.",
-    "Feeling down sometimes helps you appreciate the bright moments ahead."
-  ],
-  happy: [
-    "Happiness is contagious! Share your joy today.",
-    "Celebrate your small wins; they are the stepping stones to bigger joys."
-  ],
-  stressed: [
-    "Take a deep breath. Stress is just your mind signaling it needs a pause.",
-    "One small step at a time can dissolve the heaviest stress."
-  ],
-  anxious: [
-    "Your anxious instinct is a signal, not a sentence. Notice it, then release it.",
-    "Anxiety often points to what you care about most. Breathe, then act gently."
-  ],
-  tired: [
-    "Rest is your mind’s way of healing. You deserve it.",
-    "Even the sun rests each night — your body needs it too."
-  ]
-};
+    function closeProgressModal() {
+      document.getElementById('progressModal').classList.remove('active');
+      currentProgressGoal = null;
+    }
 
-function showEmotionResponse() {
-  const emotion = document.getElementById('userEmotion').value.toLowerCase();
-  if(emotionQuotes[emotion]) {
-    const quotes = emotionQuotes[emotion];
-    const randomQuote = quotes[Math.floor(Math.random()*quotes.length)];
-    emotionResponseEl.textContent = randomQuote;
-  } else {
-    emotionResponseEl.textContent = "Thank you for sharing. Remember, every feeling is valid.";
-  }
-  document.getElementById('userEmotion').value = '';
-}
-</script>
-</body>
+    async function deleteGoal(goalId) {
+      const goal = goals.find(g => g.__backendId === goalId);
+      if (!goal) return;
+
+      // Create inline confirmation
+      const goalCard = event.target.closest('.goal-card');
+      const actionsDiv = goalCard.querySelector('.goal-actions');
+      const originalHTML = actionsDiv.innerHTML;
+      
+      actionsDiv.innerHTML = `
+        <button class="btn btn-danger" onclick="confirmDelete('${goalId}')">Confirm Delete?</button>
+        <button class="btn" style="background: #95a5a6; color: white;" onclick="cancelDelete('${goalId}')">Cancel</button>
+      `;
+      
+      // Store original HTML for cancel
+      actionsDiv.dataset.originalHTML = originalHTML;
+    }
+
+    async function confirmDelete(goalId) {
+      const goal = goals.find(g => g.__backendId === goalId);
+      if (!goal || !window.dataSdk) return;
+
+      const goalCard = event.target.closest('.goal-card');
+      goalCard.classList.add('loading');
+
+      const result = await window.dataSdk.delete(goal);
+      if (!result.isOk) {
+        goalCard.classList.remove('loading');
+        // Show error message
+        const actionsDiv = goalCard.querySelector('.goal-actions');
+        actionsDiv.innerHTML = `<div style="color: #e74c3c; font-size: 0.9rem;">Failed to delete goal. Please try again.</div>`;
+        setTimeout(() => {
+          actionsDiv.innerHTML = actionsDiv.dataset.originalHTML;
+        }, 3000);
+      }
+    }
+
+    function cancelDelete(goalId) {
+      const goalCard = event.target.closest('.goal-card');
+      const actionsDiv = goalCard.querySelector('.goal-actions');
+      actionsDiv.innerHTML = actionsDiv.dataset.originalHTML;
+    }
+
+    // Event Listeners
+    document.getElementById('addGoalBtn').addEventListener('click', openAddGoalModal);
+    document.getElementById('categoryFilter').addEventListener('change', renderGoals);
+
+    document.getElementById('goalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (goals.length >= 999 && !currentEditingGoal) {
+        alert('Maximum limit of 999 goals reached. Please delete some goals first.');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.classList.add('loading');
+
+      const goalData = {
+        id: currentEditingGoal ? currentEditingGoal.id : Date.now().toString(),
+        title: document.getElementById('goalTitle').value,
+        target_amount: parseFloat(document.getElementById('goalTarget').value),
+        current_amount: parseFloat(document.getElementById('goalCurrent').value),
+        deadline: document.getElementById('goalDeadline').value,
+        category: document.getElementById('goalCategory').value,
+        description: document.getElementById('goalDescription').value,
+        created_at: currentEditingGoal ? currentEditingGoal.created_at : new Date().toISOString(),
+        last_updated: new Date().toISOString()
+      };
+
+      let result;
+      if (currentEditingGoal) {
+        result = await window.dataSdk.update({ ...goalData, __backendId: currentEditingGoal.__backendId });
+      } else {
+        result = await window.dataSdk.create(goalData);
+      }
+
+      submitBtn.classList.remove('loading');
+
+      if (result.isOk) {
+        closeModal();
+      } else {
+        // Show error message
+        const errorDiv = document.createElement('div');
+        errorDiv.style.color = '#e74c3c';
+        errorDiv.style.fontSize = '0.9rem';
+        errorDiv.style.marginTop = '10px';
+        errorDiv.textContent = 'Failed to save goal. Please try again.';
+        submitBtn.parentNode.appendChild(errorDiv);
+        setTimeout(() => errorDiv.remove(), 3000);
+      }
+    });
+
+    document.getElementById('progressForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!currentProgressGoal) return;
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.classList.add('loading');
+
+      const newAmount = parseFloat(document.getElementById('newAmount').value);
+      const updatedGoal = {
+        ...currentProgressGoal,
+        current_amount: newAmount,
+        last_updated: new Date().toISOString()
+      };
+
+      const result = await window.dataSdk.update(updatedGoal);
+      
+      submitBtn.classList.remove('loading');
+
+      if (result.isOk) {
+        closeProgressModal();
+      } else {
+        // Show error message
+        const errorDiv = document.createElement('div');
+        errorDiv.style.color = '#e74c3c';
+        errorDiv.style.fontSize = '0.9rem';
+        errorDiv.style.marginTop = '10px';
+        errorDiv.textContent = 'Failed to update progress. Please try again.';
+        submitBtn.parentNode.appendChild(errorDiv);
+        setTimeout(() => errorDiv.remove(), 3000);
+      }
+    });
+
+    // Close modals when clicking outside
+    document.getElementById('goalModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    document.getElementById('progressModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeProgressModal();
+    });
+
+    async function onConfigChange(newConfig) {
+      const baseSize = newConfig.font_size || defaultConfig.font_size;
+      const customFont = newConfig.font_family || defaultConfig.font_family;
+      const baseFontStack = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif';
+      const fontFamily = `${customFont}, ${baseFontStack}`;
+
+      document.getElementById('appTitle').textContent = newConfig.app_title || defaultConfig.app_title;
+      document.getElementById('welcomeMessage').textContent = newConfig.welcome_message || defaultConfig.welcome_message;
+      document.getElementById('addGoalBtn').textContent = newConfig.add_goal_button_text || defaultConfig.add_goal_button_text;
+
+      document.body.style.fontFamily = fontFamily;
+      document.body.style.fontSize = `${baseSize}px`;
+
+      const primaryColor = newConfig.primary_color || defaultConfig.primary_color;
+      const secondaryColor = newConfig.secondary_color || defaultConfig.secondary_color;
+      const accentColor = newConfig.accent_color || defaultConfig.accent_color;
+      const textColor = newConfig.text_color || defaultConfig.text_color;
+      const cardColor = newConfig.card_color || defaultConfig.card_color;
+
+      document.body.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      
+      const style = document.createElement('style');
+      style.textContent = `
+        .goal-card { background-color: ${cardColor} !important; }
+        .app-title, .welcome-message { color: ${textColor} !important; }
+        .add-goal-btn { background: linear-gradient(135deg, ${accentColor}, ${accentColor}dd) !important; }
+        .btn-success { background-color: ${accentColor} !important; }
+        .progress-fill { background: linear-gradient(90deg, ${accentColor}, ${accentColor}dd) !important; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                config.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_color || defaultConfig.secondary_color,
+              set: (value) => {
+                config.secondary_color = value;
+                window.elementSdk.setConfig({ secondary_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.card_color || defaultConfig.card_color,
+              set: (value) => {
+                config.card_color = value;
+                window.elementSdk.setConfig({ card_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["app_title", config.app_title || defaultConfig.app_title],
+          ["welcome_message", config.welcome_message || defaultConfig.welcome_message],
+          ["add_goal_button_text", config.add_goal_button_text || defaultConfig.add_goal_button_text]
+        ])
+      });
+
+      config = window.elementSdk.config;
+    }
+
+    // Initialize the app
+    initializeApp();
+    onConfigChange(config);
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99990f18d7d44511',t:'MTc2MjMxMTE4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
